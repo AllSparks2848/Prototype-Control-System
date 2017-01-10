@@ -1,15 +1,10 @@
 
 package org.usfirst.frc.team2850.robot;
 
-import edu.wpi.first.wpilibj.Compressor;
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.RobotDrive;
-import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Spark;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -20,33 +15,23 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public class Robot extends IterativeRobot {
     public static Joystick xbox1;
+    public static PowerDistributionPanel pdp;
+	public static Spark motor1;
 	
-	public static RobotDrive drivetrain;
-	public static Spark leftDrive1;
-	public static Spark rightDrive1;
-	public static Spark leftDrive2;
-	public static Spark rightDrive2;
-	public static Compressor compressor;
-	public static Solenoid driveshifter;
-    public static boolean high;
+	public static double maxCurrent = 0;
 	
+	
+	public static double avgCurrent = 0;
+	public static double iterations = 0;
+	public static double sumCurrent = 0;
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
      */
     public void robotInit() {
     	xbox1=new Joystick(0);
-    	leftDrive1=new Spark(0);
-    	leftDrive2=new Spark(1);
-    	rightDrive1=new Spark(2);
-    	rightDrive2=new Spark(3);
-    	
-    	drivetrain= new RobotDrive(leftDrive1, leftDrive2, rightDrive1, rightDrive2 );
-    	
-    	compressor = new Compressor();
-    	driveshifter=new Solenoid(0);
-       
-        
+    	motor1=new Spark(0);
+    	pdp = new PowerDistributionPanel();
     }
     
 	/**
@@ -73,19 +58,16 @@ public class Robot extends IterativeRobot {
      * This function is called periodically during operator control
      */
     public void teleopPeriodic() {
-    	drivetrain.arcadeDrive(-xbox1.getRawAxis(1), -xbox1.getRawAxis(4));
-    	if(xbox1.getRawButton(5)){
-    		high=false;
-    	}
     	
-    	if(xbox1.getRawButton(6)){
-    		high=true;
-    	}
-    	
-    	driveshifter.set(high);
-        
+    if(xbox1.getRawButton(0))
+    	motor1.set(1.0);
+    if(maxCurrent<pdp.getCurrent(0))
+    	maxCurrent=pdp.getCurrent(0);
+    sumCurrent += pdp.getCurrent(0);
+    avgCurrent = sumCurrent/iterations;
+    iterations++;
+    System.out.println("Max Current Draw: " + Double.toString(maxCurrent) + "/n Avg Current Draw: " + Double.toString(avgCurrent));
     }
-    
     /**
      * This function is called periodically during test mode
      */
